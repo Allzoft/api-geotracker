@@ -10,6 +10,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { UserContextModule } from './userContext/userContext.module';
 import { AuthModule } from './auth/auth.module';
+import { DevicesModule } from './devices/devices.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { AuthModule } from './auth/auth.module';
     UsersModule,
     AuthModule,
     UserContextModule,
+    DevicesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

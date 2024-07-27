@@ -6,24 +6,20 @@ import { CreateUserDto, FilterUsersLogDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { Users } from '../entities/user.entity';
 import { RoleService } from './role.service';
-import { Between, In, Repository } from 'typeorm';
-import { CitiesService } from 'src/admin/services/cities.service';
+import { Between, Repository } from 'typeorm';
 import { UserLogs } from '../entities/userLog.entity';
 import { CreateUserLogsDto } from '../dto/create-userLog.dto';
 import { UserContextService } from 'src/userContext/service/userContext.service';
-import { Branches } from 'src/admin/entities/branch.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(Users)
     private userRepository: Repository<Users>,
-    @InjectRepository(Branches)
-    private branchesRepository: Repository<Branches>,
+
     @InjectRepository(UserLogs)
     private userLogsRepository: Repository<UserLogs>,
     private roleService: RoleService,
-    private citiesService: CitiesService,
     private readonly userContextAuth: UserContextService,
   ) {}
 
@@ -37,22 +33,6 @@ export class UsersService {
       newUser.role = role;
     }
 
-    if (createUserDto.selected_city) {
-      const city = await this.citiesService.findOne(
-        createUserDto.selected_city,
-      );
-      newUser.city = city;
-    }
-
-    if (createUserDto.branchesIds) {
-      const branches = await this.branchesRepository.findBy({
-        id_branch: In(createUserDto.branchesIds),
-      });
-      newUser.branches = branches;
-    }
-
-    newUser.selected_branch = newUser.branches[0].id_branch;
-
     const savedUser = await this.userRepository.save(newUser);
 
     if (userCount > 0) {
@@ -65,14 +45,14 @@ export class UsersService {
         icon: 'user-plus',
         color: '#37D52F',
       };
-      this.createLogUser(logDto);
+      await this.createLogUser(logDto);
     }
     return savedUser;
   }
 
   async findAll() {
     const list = await this.userRepository.find({
-      relations: ['role', 'city', 'branches'],
+      relations: ['role'],
       where: { status: 1 },
     });
     if (!list.length) {
@@ -83,8 +63,8 @@ export class UsersService {
 
   async findAllWithPayment() {
     const list = await this.userRepository.find({
-      relations: ['role', 'city', 'branches'],
-      where: { status: 1, receive_salary: 1 },
+      relations: ['role'],
+      where: { status: 1 },
     });
     if (!list.length) {
       throw new NotFoundException({ message: 'lista vacia' });
@@ -94,7 +74,7 @@ export class UsersService {
 
   async findOne(id: number) {
     const item = await this.userRepository.findOne({
-      relations: ['role', 'city', 'branches'],
+      relations: ['role'],
       where: { id_user: id, status: 1 },
     });
     if (!item) {
@@ -115,7 +95,7 @@ export class UsersService {
 
   async login(email: string, password: string) {
     const item = await this.userRepository.findOne({
-      relations: ['role', 'city'],
+      relations: ['role'],
       where: { email: email, password: password },
     });
     if (!item) {
@@ -129,17 +109,23 @@ export class UsersService {
       item.role = access;
     }
 
-    if (item.selected_city) {
-      const city = await this.citiesService.findOne(item.selected_city);
-      item.city = city;
-    }
+    const userId = this.userContextAuth.getUser().id_user;
+    const logDto: CreateUserLogsDto = {
+      id_user_logs: 0,
+      title: 'Ingreso al sistema',
+      detail: `Usuario ${item.name} (ID: ${item.id_user}) ingreso al sistema`,
+      userIdUser: userId,
+      icon: 'sign-in',
+      color: '#37D52F',
+    };
+    await this.createLogUser(logDto);
 
     return item;
   }
 
   async findbyemail(email: string) {
     const item = await this.userRepository.findOne({
-      relations: ['role', 'city', 'branches', 'branch'],
+      relations: ['role'],
       where: { email: email, status: 1 },
     });
 
@@ -158,7 +144,7 @@ export class UsersService {
     const userId = this.userContextAuth.getUser().id_user;
     const item = await this.userRepository.findOne({
       where: { id_user: id, status: 1 },
-      relations: ['role', 'city', 'branches'],
+      relations: ['role'],
     });
 
     if (updateUserDto.password) {
@@ -169,27 +155,6 @@ export class UsersService {
     if (updateUserDto.roleIdRole) {
       const role = await this.roleService.findOne(updateUserDto.roleIdRole);
       item.role = role;
-    }
-
-    if (updateUserDto.selected_city) {
-      const city = await this.citiesService.findOne(
-        updateUserDto.selected_city,
-      );
-      item.city = city;
-    }
-
-    if (updateUserDto.selected_branch) {
-      const branch = await this.branchesRepository.findOne({
-        where: { id_branch: updateUserDto.selected_branch },
-      });
-      item.branch = branch;
-    }
-
-    if (updateUserDto.branchesIds) {
-      const branch = await this.branchesRepository.findBy({
-        id_branch: In(updateUserDto.branchesIds),
-      });
-      item.branches = branch;
     }
 
     this.userRepository.merge(item, updateUserDto);
@@ -241,7 +206,7 @@ export class UsersService {
 
     const list = await this.userRepository.find({
       where: { userLogs: { created_at: Between(datestart, dateend) } },
-      relations: { userLogs: true, branches: true, role: true },
+      relations: { userLogs: true, role: true },
     });
 
     if (!list.length) {
@@ -265,8 +230,8 @@ export class UsersService {
     return this.userLogsRepository.find();
   }
 
-  createLogUser(createUserLogsDto: CreateUserLogsDto) {
+  async createLogUser(createUserLogsDto: CreateUserLogsDto) {
     const newObj = this.userLogsRepository.create(createUserLogsDto);
-    return this.userLogsRepository.save(newObj);
+    return await this.userLogsRepository.save(newObj);
   }
 }
