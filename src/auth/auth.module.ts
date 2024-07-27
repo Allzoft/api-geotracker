@@ -26,7 +26,7 @@ import { UserContextModule } from 'src/userContext/userContext.module';
         return {
           secret: configService.jwtSecret,
           signOptions: {
-            expiresIn: '10d',
+            expiresIn: '7d',
           },
         };
       },
