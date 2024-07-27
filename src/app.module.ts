@@ -7,6 +7,9 @@ import { enviroments } from './enviroments';
 import * as Joi from 'joi';
 import config from './config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersModule } from './users/users.module';
+import { UserContextModule } from './userContext/userContext.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -39,6 +42,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       }),
       inject: [ConfigService],
     }),
+    UsersModule,
+    AuthModule,
+    UserContextModule,
   ],
   controllers: [AppController],
   providers: [AppService],
