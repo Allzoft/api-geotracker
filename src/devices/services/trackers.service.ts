@@ -97,7 +97,7 @@ export class TrackersService {
   public runScript(args: string[]): Promise<string> {
     return new Promise((resolve, reject) => {
       const pythonProcess = spawn('python3', [
-        '/path/to/your/script.py',
+        '/var/www/seeker/seeker.py',
         ...args,
       ]);
 
