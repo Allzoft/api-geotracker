@@ -5,6 +5,7 @@ import { Trackers } from '../entities/tracker.entity';
 import { CreateTrackerDto } from '../dto/create-tracker.dto';
 import { UserContextService } from 'src/userContext/service/userContext.service';
 import { UpdateTrackerDto } from '../dto/update-tracker.dto';
+import { spawn } from 'child_process';
 
 @Injectable()
 export class TrackersService {
@@ -92,4 +93,49 @@ export class TrackersService {
 
     return this.trackersRepository.save(item);
   }
+
+  public runScript(args: string[]): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const pythonProcess = spawn('python3', [
+        '/path/to/your/script.py',
+        ...args,
+      ]);
+
+      let output = '';
+      let error = '';
+
+      pythonProcess.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+
+      pythonProcess.stderr.on('data', (data) => {
+        error += data.toString();
+      });
+
+      pythonProcess.on('close', (code) => {
+        if (code !== 0) {
+          reject(new Error(error));
+        } else {
+          resolve(output);
+        }
+      });
+    });
+  }
+
+  async selectTemplate(templateIndex: number): Promise<string> {
+    return this.runScript([templateIndex.toString()]);
+  }
+
+  //   async runScript(scriptPath: string, args: string[] = []): Promise<string> {
+  //     const command = `python ${scriptPath} ${args.join(' ')}`;
+  //     try {
+  //       const { stdout, stderr } = await execPromise(command);
+  //       if (stderr) {
+  //         throw new Error(stderr);
+  //       }
+  //       return stdout;
+  //     } catch (error) {
+  //       throw new Error(`Error executing Python script: ${error.message}`);
+  //     }
+  //   }
 }

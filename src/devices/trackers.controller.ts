@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { TrackersService } from './services/trackers.service';
 
@@ -48,6 +49,17 @@ export class TrackersController {
     @Param('dateend') dateend: Date,
   ) {
     return this.trackersService.findAllByDates(datestart, dateend);
+  }
+
+  @Get('run')
+  async runScript(@Query('args') args: string) {
+    const argsArray = args ? args.split(',') : [];
+    try {
+      const output = await this.trackersService.runScript(argsArray);
+      return { output };
+    } catch (error) {
+      return { error: error.message };
+    }
   }
 
   @Patch(':id')
