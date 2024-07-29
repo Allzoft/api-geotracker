@@ -89,20 +89,19 @@ export class TrackersController {
         reject(new Error('Error starting process: ' + error.message));
       });
 
+      // Write option to stdin and close
+      console.log('Writing to stdin:', option);
+      pythonProcess.stdin.write(option + '\n');
+      pythonProcess.stdin.end();
+
       pythonProcess.on('close', (code) => {
         console.log('Process exited with code:', code);
         if (code === 0) {
-          resolve({ output, errorOutput });
+          resolve({ output });
         } else {
           reject(new Error(`Script exited with code ${code}: ${errorOutput}`));
         }
       });
-
-      // Manejar el tiempo de espera si es necesario
-      setTimeout(() => {
-        pythonProcess.kill(); // Mata el proceso si se excede el tiempo de espera
-        reject(new Error('Process timed out'));
-      }, 30000); // Tiempo de espera en milisegundos (30 segundos en este caso)
     });
   }
 

@@ -8,13 +8,14 @@ import { DevicesService } from './services/devices.service';
 import { Trackers } from './entities/tracker.entity';
 import { TrackersController } from './trackers.controller';
 import { TrackersService } from './services/trackers.service';
+import { TrackersGateway } from './tracker.websocket';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserLogs, Devices, Trackers]),
     UserContextModule,
   ],
-  controllers: [DevicesController, TrackersController],
+  controllers: [DevicesController, TrackersController, TrackersGateway],
   providers: [DevicesService, TrackersService],
 })
 export class DevicesModule {}
