@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
   Query,
 } from '@nestjs/common';
 import { TrackersService } from './services/trackers.service';
@@ -14,8 +15,10 @@ import { CreateTrackerDto } from './dto/create-tracker.dto';
 import { UpdateTrackerDto } from './dto/update-tracker.dto';
 
 import { ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Public } from 'src/auth/decorators/public.decorator';
 
+@UseGuards(JwtAuthGuard)
 @ApiTags('trackers')
 @Controller('trackers')
 export class TrackersController {
@@ -50,7 +53,7 @@ export class TrackersController {
   }
 
   @Public()
-  @Get('run')
+  @Get('run/tracker/run')
   async runScript(@Query('args') args: string) {
     const argsArray = args ? args.split(',') : [];
     try {
