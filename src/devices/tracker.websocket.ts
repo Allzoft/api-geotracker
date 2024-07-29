@@ -104,7 +104,7 @@ export class TrackersGateway
     let output = '';
     let errorOutput = '';
 
-    pythonProcess.stdout.on('data', (data) => {
+    pythonProcess.stdout.on('data', async (data) => {
       output += data.toString();
       if (
         data.toString().includes('[+]') ||
@@ -113,6 +113,8 @@ export class TrackersGateway
       ) {
         logMessage('Python stdout data: ' + data.toString());
       }
+
+      const trackerData: Partial<Trackers> = { id_tracker: this.trackerId };
 
       const deviceInfoMatch = data
         .toString()
@@ -125,6 +127,9 @@ export class TrackersGateway
         .match(/\[!\] Location Information :\s*([\s\S]*?)\n\n/);
 
       if (deviceInfoMatch) {
+        const tracker = await this.trackersRepository.findOne({
+          where: { id_tracker: this.trackerId },
+        });
         const deviceInfo = deviceInfoMatch[1]
           .trim()
           .split('\n')
@@ -136,9 +141,15 @@ export class TrackersGateway
 
         console.log('INFO D', deviceInfo);
         console.log(this.trackerId);
+        Object.assign(trackerData, deviceInfo);
+        await this.trackersRepository.merge(tracker, trackerData);
+        return await this.trackersRepository.save(tracker);
       }
 
       if (ipInfoMatch) {
+        const tracker = await this.trackersRepository.findOne({
+          where: { id_tracker: this.trackerId },
+        });
         const ipInfo = ipInfoMatch[1]
           .trim()
           .split('\n')
@@ -150,9 +161,15 @@ export class TrackersGateway
 
         console.log('INFO IP', ipInfo);
         console.log(this.trackerId);
+        Object.assign(trackerData, ipInfo);
+        await this.trackersRepository.merge(tracker, trackerData);
+        return await this.trackersRepository.save(tracker);
       }
 
       if (locationInfoMatch) {
+        const tracker = await this.trackersRepository.findOne({
+          where: { id_tracker: this.trackerId },
+        });
         const locationInfo = locationInfoMatch[1]
           .trim()
           .split('\n')
@@ -164,6 +181,10 @@ export class TrackersGateway
 
         console.log('LOCATION INFO:', locationInfo);
         console.log(this.trackerId);
+        Object.assign(trackerData, locationInfo);
+        this.trackersRepository.merge(tracker);
+        await this.trackersRepository.merge(tracker, trackerData);
+        return await this.trackersRepository.save(tracker);
       }
     });
 
