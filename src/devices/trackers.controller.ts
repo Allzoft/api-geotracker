@@ -17,6 +17,11 @@ import { ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Public } from 'src/auth/decorators/public.decorator';
 
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execPromise = promisify(exec);
+
 @UseGuards(JwtAuthGuard)
 @ApiTags('trackers')
 @Controller('trackers')
@@ -54,9 +59,14 @@ export class TrackersController {
   @Public()
   @Get('run/tracker/run')
   async runScript() {
+    const command = `python3 /var/www/seeker/seeker.py`;
+
     try {
-      const output = await this.trackersService.runScript();
-      return { output };
+      const { stdout, stderr } = await execPromise(command);
+      if (stderr) {
+        throw new Error(stderr);
+      }
+      return { output: stdout };
     } catch (error) {
       return { error: error.message };
     }

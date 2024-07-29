@@ -5,7 +5,6 @@ import { Trackers } from '../entities/tracker.entity';
 import { CreateTrackerDto } from '../dto/create-tracker.dto';
 import { UserContextService } from 'src/userContext/service/userContext.service';
 import { UpdateTrackerDto } from '../dto/update-tracker.dto';
-import { spawn } from 'child_process';
 
 @Injectable()
 export class TrackersService {
@@ -92,35 +91,6 @@ export class TrackersService {
     this.trackersRepository.merge(item, deleteTracker);
 
     return this.trackersRepository.save(item);
-  }
-
-  public runScript(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const pythonProcess = spawn('python3', ['/var/www/seeker/seeker.py']);
-
-      let output = '';
-      let error = '';
-
-      pythonProcess.stdout.on('data', (data) => {
-        output += data.toString();
-      });
-
-      pythonProcess.stderr.on('data', (data) => {
-        error += data.toString();
-      });
-
-      pythonProcess.on('close', (code) => {
-        if (code !== 0) {
-          reject(new Error(error));
-        } else {
-          resolve(output);
-        }
-      });
-    });
-  }
-
-  async selectTemplate(): Promise<string> {
-    return this.runScript();
   }
 
   //   async runScript(scriptPath: string, args: string[] = []): Promise<string> {
