@@ -16,7 +16,7 @@ import { Server, Socket } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid'; // Para generar IDs únicos
 
 @ApiTags('trackers')
-@WebSocketGateway({
+@WebSocketGateway(4500, {
   namespace: 'ws',
   cors: {
     origin: '*',
