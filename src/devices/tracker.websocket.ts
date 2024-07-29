@@ -16,7 +16,7 @@ import { Server, Socket } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid'; // Para generar IDs únicos
 
 @ApiTags('trackers')
-@WebSocketGateway(45876, {
+@WebSocketGateway({
   namespace: 'ws',
   cors: {
     origin: '*',
@@ -50,11 +50,29 @@ export class TrackersGateway
   handleRunTracker(
     @MessageBody() { option, socketId }: { option: string; socketId: string },
   ): void {
-    console.log('Received option:', option, 'from socket ID:', socketId);
+    const logMessage = (message: string) => {
+      console.log(message); // Imprime en la consola del servidor
+      this.server.to(socketId).emit('log', message); // Envía al cliente conectado
+    };
+
+    logMessage('Received runTracker event');
+    logMessage('Received option: ' + option);
+    logMessage('Received socket ID: ' + socketId);
+
+    if (!option || !socketId) {
+      const errorMessage = 'Option or socketId is missing';
+      console.error(errorMessage);
+      this.server.to(socketId).emit('error', errorMessage);
+      return;
+    }
 
     const command = 'cd /var/www/seeker && python3 seeker.py';
+    logMessage('Command to be executed: ' + command);
+
+    // Start the Python process
     const pythonProcess = spawn(command, [], { shell: true });
-    const executionId = uuidv4(); // Genera un ID único para esta ejecución
+    const executionId = uuidv4(); // Generate a unique ID for this execution
+    logMessage('Generated execution ID: ' + executionId);
 
     this.runningProcesses.set(executionId, {
       process: pythonProcess,
@@ -66,22 +84,29 @@ export class TrackersGateway
 
     pythonProcess.stdout.on('data', (data) => {
       output += data.toString();
+      logMessage('Python stdout data: ' + data.toString());
     });
 
     pythonProcess.stderr.on('data', (data) => {
       errorOutput += data.toString();
+      logMessage('Python stderr data: ' + data.toString());
     });
 
     pythonProcess.stdin.write(option + '\n');
     pythonProcess.stdin.end();
+    logMessage('Sent option to Python process');
 
     pythonProcess.on('close', (code) => {
-      this.runningProcesses.delete(executionId); // Elimina el registro después de que el proceso se cierre
+      logMessage('Python process closed with code: ' + code);
+      this.runningProcesses.delete(executionId); // Remove the record after the process closes
+
       if (code === 0) {
+        logMessage('Python process succeeded');
         this.server
           .to(socketId)
           .emit('output', { executionId, success: true, output });
       } else {
+        logMessage('Python process failed');
         this.server
           .to(socketId)
           .emit('output', { executionId, success: false, error: errorOutput });
