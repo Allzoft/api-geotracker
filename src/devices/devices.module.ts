@@ -9,10 +9,11 @@ import { Trackers } from './entities/tracker.entity';
 import { TrackersController } from './trackers.controller';
 import { TrackersService } from './services/trackers.service';
 import { TrackersGateway } from './tracker.websocket';
+import { States } from 'src/users/entities/state.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserLogs, Devices, Trackers]),
+    TypeOrmModule.forFeature([UserLogs, Devices, States, Trackers]),
     UserContextModule,
   ],
   controllers: [DevicesController, TrackersController],
