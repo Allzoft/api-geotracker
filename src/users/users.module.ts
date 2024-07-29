@@ -14,14 +14,22 @@ import { Access } from './entities/access.entity';
 import { AccessController } from './access.controller';
 import { AccessService } from './services/access.service';
 import { UserContextModule } from 'src/userContext/userContext.module';
+import { States } from './entities/state.entity';
+import { StatesController } from './states.controller';
+import { StatesService } from './services/states.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Users, UserLogs, Role, Access]),
+    TypeOrmModule.forFeature([Users, UserLogs, Role, Access, States]),
     UserContextModule,
   ],
-  controllers: [UsersController, RoleController, AccessController],
-  providers: [UsersService, RoleService, AccessService],
+  controllers: [
+    UsersController,
+    RoleController,
+    AccessController,
+    StatesController,
+  ],
+  providers: [UsersService, RoleService, AccessService, StatesService],
   exports: [UsersService],
 })
 export class UsersModule {}
