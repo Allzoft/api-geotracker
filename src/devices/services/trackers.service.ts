@@ -72,6 +72,7 @@ export class TrackersService {
     dateend.setHours(23, 59, 59, 999);
     const list = await this.trackersRepository.count({
       where: { status: 1, created_at: Between(datestart, dateend) },
+      relations: { device: true, state: true },
     });
 
     return list;
@@ -80,6 +81,7 @@ export class TrackersService {
   async findOne(id: number) {
     const item = await this.trackersRepository.findOne({
       where: { id_tracker: id, status: 1 },
+      relations: { device: true, state: true },
     });
     if (!item) {
       throw new NotFoundException(`This tracker #${id} not found`);
