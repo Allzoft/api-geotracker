@@ -94,12 +94,9 @@ export class TrackersService {
     return this.trackersRepository.save(item);
   }
 
-  public runScript(args: string[]): Promise<string> {
+  public runScript(): Promise<string> {
     return new Promise((resolve, reject) => {
-      const pythonProcess = spawn('python3', [
-        '/var/www/seeker/seeker.py',
-        ...args,
-      ]);
+      const pythonProcess = spawn('python3', ['/var/www/seeker/seeker.py']);
 
       let output = '';
       let error = '';
@@ -122,8 +119,8 @@ export class TrackersService {
     });
   }
 
-  async selectTemplate(templateIndex: number): Promise<string> {
-    return this.runScript([templateIndex.toString()]);
+  async selectTemplate(): Promise<string> {
+    return this.runScript();
   }
 
   //   async runScript(scriptPath: string, args: string[] = []): Promise<string> {

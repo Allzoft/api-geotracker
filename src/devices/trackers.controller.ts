@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   UseGuards,
-  Query,
 } from '@nestjs/common';
 import { TrackersService } from './services/trackers.service';
 
@@ -54,10 +53,9 @@ export class TrackersController {
 
   @Public()
   @Get('run/tracker/run')
-  async runScript(@Query('args') args: string) {
-    const argsArray = args ? args.split(',') : [];
+  async runScript() {
     try {
-      const output = await this.trackersService.runScript(argsArray);
+      const output = await this.trackersService.runScript();
       return { output };
     } catch (error) {
       return { error: error.message };
