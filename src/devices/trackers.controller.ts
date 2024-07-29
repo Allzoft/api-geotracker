@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { TrackersService } from './services/trackers.service';
 
@@ -17,10 +19,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Public } from 'src/auth/decorators/public.decorator';
 
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execPromise = promisify(exec);
+import { spawn } from 'child_process';
 
 @UseGuards(JwtAuthGuard)
 @ApiTags('trackers')
@@ -58,18 +57,52 @@ export class TrackersController {
 
   @Public()
   @Get('run/tracker/run')
-  async runScript() {
-    const command = `python3 /var/www/seeker/seeker.py 0`;
+  async runScript(@Query('option') option: string) {
+    console.log('Received option:', option);
 
-    try {
-      const { stdout, stderr } = await execPromise(command);
-      if (stderr) {
-        throw new Error(stderr);
-      }
-      return { output: stdout };
-    } catch (error) {
-      return { error: error.message };
+    if (option !== '0' && option !== '1') {
+      console.log('Invalid option received');
+      throw new BadRequestException('Invalid option. Please choose 0 or 1.');
     }
+
+    const command = 'python3 /var/www/seeker/seeker.py';
+    console.log('Executing command:', command);
+
+    const pythonProcess = spawn(command, [], { shell: true });
+
+    return new Promise((resolve, reject) => {
+      let output = '';
+      let errorOutput = '';
+
+      pythonProcess.stdout.on('data', (data) => {
+        console.log('stdout:', data.toString());
+        output += data.toString();
+      });
+
+      pythonProcess.stderr.on('data', (data) => {
+        console.log('stderr:', data.toString());
+        errorOutput += data.toString();
+      });
+
+      pythonProcess.on('error', (error) => {
+        console.log('Process error:', error);
+        reject(new Error('Error starting process: ' + error.message));
+      });
+
+      // Write option to stdin and close
+      console.log('Writing to stdin:', option);
+      pythonProcess.stdin.write(option + '\n');
+      pythonProcess.stdin.end();
+
+      pythonProcess.on('close', (code) => {
+        console.log('Process exited with code:', code);
+        if (code === 0) {
+          resolve({ output });
+        } else {
+          reject(new Error(`Script exited with code ${code}: ${errorOutput}`));
+        }
+      });
+    });
   }
 
   @Patch(':id')
