@@ -113,4 +113,60 @@ export class TrackersGateway
       }
     });
   }
+
+  @SubscribeMessage('getLink')
+  handleRunTrackerLink(
+    @MessageBody() { socketId }: { socketId: string },
+  ): void {
+    const logMessage = (message: string) => {
+      console.log(message); // Imprime en la consola del servidor
+      this.server.to(socketId).emit('log', message); // Envía al cliente conectado
+    };
+
+    logMessage('Received runTracker event');
+    logMessage('Received socket ID: ' + socketId);
+
+    const command = 'ssh -R 80:localhost:8080 nokey@localhost.run';
+    logMessage('Command to be executed: ' + command);
+
+    // Start the Python process
+    const pythonProcess = spawn(command, [], { shell: true });
+    const executionId = uuidv4(); // Generate a unique ID for this execution
+    logMessage('Generated execution ID: ' + executionId);
+
+    this.runningProcesses.set(executionId, {
+      process: pythonProcess,
+      socketId,
+    });
+
+    let output = '';
+    let errorOutput = '';
+
+    pythonProcess.stdout.on('data', (data) => {
+      output += data.toString();
+      logMessage('Python stdout data: ' + data.toString());
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+      errorOutput += data.toString();
+      logMessage('Python stderr data: ' + data.toString());
+    });
+
+    pythonProcess.on('close', (code) => {
+      logMessage('Python process closed with code: ' + code);
+      this.runningProcesses.delete(executionId); // Remove the record after the process closes
+
+      if (code === 0) {
+        logMessage('Python process succeeded');
+        this.server
+          .to(socketId)
+          .emit('output', { executionId, success: true, output });
+      } else {
+        logMessage('Python process failed');
+        this.server
+          .to(socketId)
+          .emit('output', { executionId, success: false, error: errorOutput });
+      }
+    });
+  }
 }
