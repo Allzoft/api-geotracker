@@ -70,7 +70,7 @@ export class TrackersService {
     datestart.setHours(0, 0, 0, 0);
     dateend = new Date(dateend);
     dateend.setHours(23, 59, 59, 999);
-    const list = await this.trackersRepository.count({
+    const list = await this.trackersRepository.find({
       where: { status: 1, created_at: Between(datestart, dateend) },
       relations: { device: true, state: true },
     });
