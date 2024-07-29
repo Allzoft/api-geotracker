@@ -5,6 +5,8 @@ import { Trackers } from '../entities/tracker.entity';
 import { CreateTrackerDto } from '../dto/create-tracker.dto';
 import { UserContextService } from 'src/userContext/service/userContext.service';
 import { UpdateTrackerDto } from '../dto/update-tracker.dto';
+import { States, TypeState } from 'src/users/entities/state.entity';
+import { Devices } from '../entities/device.entity';
 
 @Injectable()
 export class TrackersService {
@@ -12,15 +14,34 @@ export class TrackersService {
     @InjectRepository(Trackers)
     public trackersRepository: Repository<Trackers>,
 
+    @InjectRepository(States)
+    public statesRepository: Repository<States>,
+
+    @InjectRepository(Devices)
+    public devicesRepository: Repository<Devices>,
+
     private readonly userContextAuth: UserContextService,
   ) {}
 
   async create(createTrackerDto: CreateTrackerDto) {
     const userId = this.userContextAuth.getUser().id_user;
-    const newClient = this.trackersRepository.create(createTrackerDto);
-    newClient.created_by_user = userId;
+    const newTracker = this.trackersRepository.create(createTrackerDto);
+    newTracker.created_by_user = userId;
 
-    return this.trackersRepository.save(newClient);
+    const state = await this.statesRepository.findOne({
+      where: { priority: 1, type: TypeState.RASTREO },
+    });
+
+    newTracker.stateIdState = state.id_state;
+    newTracker.state = state;
+
+    const device = await this.devicesRepository.findOne({
+      where: { id_device: createTrackerDto.deviceIdDevice },
+    });
+
+    newTracker.device = device;
+
+    return await this.trackersRepository.save(newTracker);
   }
 
   async findAll() {
@@ -92,17 +113,4 @@ export class TrackersService {
 
     return this.trackersRepository.save(item);
   }
-
-  //   async runScript(scriptPath: string, args: string[] = []): Promise<string> {
-  //     const command = `python ${scriptPath} ${args.join(' ')}`;
-  //     try {
-  //       const { stdout, stderr } = await execPromise(command);
-  //       if (stderr) {
-  //         throw new Error(stderr);
-  //       }
-  //       return stdout;
-  //     } catch (error) {
-  //       throw new Error(`Error executing Python script: ${error.message}`);
-  //     }
-  //   }
 }

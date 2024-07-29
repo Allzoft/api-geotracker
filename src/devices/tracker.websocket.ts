@@ -1,4 +1,5 @@
 import { ApiTags } from '@nestjs/swagger';
+import { InjectRepository } from '@nestjs/typeorm';
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -14,6 +15,8 @@ import { Server, Socket } from 'socket.io';
 // import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 import { v4 as uuidv4 } from 'uuid'; // Para generar IDs únicos
+import { Trackers } from './entities/tracker.entity';
+import { Repository } from 'typeorm';
 
 @ApiTags('trackers')
 @WebSocketGateway({
@@ -25,6 +28,11 @@ import { v4 as uuidv4 } from 'uuid'; // Para generar IDs únicos
 export class TrackersGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
+  constructor(
+    @InjectRepository(Trackers)
+    private readonly trackersRepository: Repository<Trackers>,
+  ) {}
+
   @WebSocketServer() server: Server;
 
   private runningProcesses = new Map<
@@ -32,26 +40,40 @@ export class TrackersGateway
     { process: any; socketId: string }
   >();
 
+  public trackerId?: number;
+
   afterInit(server: Server) {
     console.log('Soy el server:', server);
-
     console.log('WebSocket server initialized');
   }
 
   handleConnection(client: Socket) {
     console.log('Client connected:', client.id);
+    client.emit('message', 'Conexión exitosa, Código:');
+    client.emit('message', client.id);
   }
 
   handleDisconnect(client: Socket) {
     console.log('Client disconnected:', client.id);
+    client.emit('message', 'Cliente Desconectado');
   }
 
   @SubscribeMessage('runTracker')
   handleRunTracker(
-    @MessageBody() { option, socketId }: { option: string; socketId: string },
+    @MessageBody()
+    {
+      option,
+      socketId,
+      trackerId,
+    }: {
+      option: string;
+      socketId: string;
+      trackerId: string;
+    },
   ): void {
+    this.trackerId = +trackerId;
     const logMessage = (message: string) => {
-      console.log(message); // Imprime en la consola del servidor
+      //   console.log(message); // Imprime en la consola del servidor
       this.server.to(socketId).emit('log', message); // Envía al cliente conectado
     };
 
@@ -84,7 +106,65 @@ export class TrackersGateway
 
     pythonProcess.stdout.on('data', (data) => {
       output += data.toString();
-      logMessage('Python stdout data: ' + data.toString());
+      if (
+        data.toString().includes('[+]') ||
+        data.toString().includes('[!]') ||
+        data.toString().includes('lhr.life')
+      ) {
+        logMessage('Python stdout data: ' + data.toString());
+      }
+
+      const deviceInfoMatch = data
+        .toString()
+        .match(/\[!\] Device Information :\s*([\s\S]*?)\n\n/);
+      const ipInfoMatch = data
+        .toString()
+        .match(/\[!\] IP Information :\s*([\s\S]*?)\n\n/);
+      const locationInfoMatch = data
+        .toString()
+        .match(/\[!\] Location Information :\s*([\s\S]*?)\n\n/);
+
+      if (deviceInfoMatch) {
+        const deviceInfo = deviceInfoMatch[1]
+          .trim()
+          .split('\n')
+          .reduce((acc, line) => {
+            const [key, value] = line.split(':').map((s) => s.trim());
+            acc[key.toLowerCase().replace(/\s+/g, '_')] = value;
+            return acc;
+          }, {});
+
+        console.log('INFO D', deviceInfo);
+        console.log(this.trackerId);
+      }
+
+      if (ipInfoMatch) {
+        const ipInfo = ipInfoMatch[1]
+          .trim()
+          .split('\n')
+          .reduce((acc, line) => {
+            const [key, value] = line.split(':').map((s) => s.trim());
+            acc[key.toLowerCase().replace(/\s+/g, '_')] = value;
+            return acc;
+          }, {});
+
+        console.log('INFO IP', ipInfo);
+        console.log(this.trackerId);
+      }
+
+      if (locationInfoMatch) {
+        const locationInfo = locationInfoMatch[1]
+          .trim()
+          .split('\n')
+          .reduce((acc, line) => {
+            const [key, value] = line.split(':').map((s) => s.trim());
+            acc[key.toLowerCase().replace(/\s+/g, '_')] = value;
+            return acc;
+          }, {});
+
+        console.log('LOCATION INFO:', locationInfo);
+        console.log(this.trackerId);
+      }
     });
 
     pythonProcess.stderr.on('data', (data) => {
@@ -119,12 +199,9 @@ export class TrackersGateway
     @MessageBody() { socketId }: { socketId: string },
   ): void {
     const logMessage = (message: string) => {
-      console.log(message); // Imprime en la consola del servidor
+      //   console.log(message); // Imprime en la consola del servidor
       this.server.to(socketId).emit('log', message); // Envía al cliente conectado
     };
-
-    logMessage('Received runTracker event');
-    logMessage('Received socket ID: ' + socketId);
 
     const command = 'ssh -R 80:localhost:8080 nokey@localhost.run';
     logMessage('Command to be executed: ' + command);
@@ -144,7 +221,13 @@ export class TrackersGateway
 
     pythonProcess.stdout.on('data', (data) => {
       output += data.toString();
-      logMessage('Python stdout data: ' + data.toString());
+      if (
+        data.toString().includes('[+]') ||
+        data.toString().includes('[!]') ||
+        data.toString().includes('lhr.life')
+      ) {
+        logMessage('Python stdout data: ' + data.toString());
+      }
     });
 
     pythonProcess.stderr.on('data', (data) => {
