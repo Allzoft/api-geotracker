@@ -15,7 +15,7 @@ import { TrackersGateway } from './tracker.websocket';
     TypeOrmModule.forFeature([UserLogs, Devices, Trackers]),
     UserContextModule,
   ],
-  controllers: [DevicesController, TrackersController, TrackersGateway],
-  providers: [DevicesService, TrackersService],
+  controllers: [DevicesController, TrackersController],
+  providers: [DevicesService, TrackersService, TrackersGateway],
 })
 export class DevicesModule {}
