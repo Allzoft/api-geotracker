@@ -59,7 +59,7 @@ export class TrackersController {
   @Public()
   @Get('run/tracker/run')
   async runScript() {
-    const command = `python3 /var/www/seeker/seeker.py`;
+    const command = `python3 /var/www/seeker/seeker.py 0`;
 
     try {
       const { stdout, stderr } = await execPromise(command);
