@@ -65,7 +65,7 @@ export class TrackersController {
       throw new BadRequestException('Invalid option. Please choose 0 or 1.');
     }
 
-    const command = 'python3 /var/www/seeker/seeker.py';
+    const command = 'cd /var/www/seeker && python3 seeker.py';
     console.log('Executing command:', command);
 
     const pythonProcess = spawn(command, [], { shell: true });
