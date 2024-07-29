@@ -16,6 +16,7 @@ import { UpdateTrackerDto } from './dto/update-tracker.dto';
 
 import { ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @UseGuards(JwtAuthGuard)
 @ApiTags('trackers')
@@ -51,6 +52,7 @@ export class TrackersController {
     return this.trackersService.findAllByDates(datestart, dateend);
   }
 
+  @Public()
   @Get('run')
   async runScript(@Query('args') args: string) {
     const argsArray = args ? args.split(',') : [];
