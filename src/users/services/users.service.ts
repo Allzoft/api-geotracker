@@ -10,6 +10,7 @@ import { Between, Repository } from 'typeorm';
 import { UserLogs } from '../entities/userLog.entity';
 import { CreateUserLogsDto } from '../dto/create-userLog.dto';
 import { UserContextService } from 'src/userContext/service/userContext.service';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Injectable()
 export class UsersService {
@@ -23,6 +24,7 @@ export class UsersService {
     private readonly userContextAuth: UserContextService,
   ) {}
 
+  @Public()
   async create(createUserDto: CreateUserDto) {
     const userCount = await this.userRepository.count();
     const newUser = this.userRepository.create(createUserDto);
