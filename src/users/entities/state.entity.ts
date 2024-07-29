@@ -1,9 +1,11 @@
+import { Trackers } from 'src/devices/entities/tracker.entity';
 import {
   PrimaryGeneratedColumn,
   Column,
   Entity,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 
 export enum TypeState {
@@ -43,4 +45,7 @@ export class States {
     type: 'timestamp',
   })
   updated_at: Date;
+
+  @OneToMany(() => Trackers, (tracker) => tracker.state)
+  trackers: Trackers[];
 }

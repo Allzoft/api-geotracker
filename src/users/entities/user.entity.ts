@@ -12,6 +12,7 @@ import { Exclude } from 'class-transformer';
 import { Role } from './../entities/role.entity';
 import { UserLogs } from './userLog.entity';
 import { Devices } from 'src/devices/entities/device.entity';
+import { Trackers } from 'src/devices/entities/tracker.entity';
 
 @Entity()
 export class Users {
@@ -75,4 +76,7 @@ export class Users {
 
   @OneToMany(() => Devices, (device) => device.user)
   devices: Devices[];
+
+  @OneToMany(() => Trackers, (tracker) => tracker.user)
+  trackers: Trackers[];
 }

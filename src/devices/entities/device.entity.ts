@@ -5,9 +5,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Trackers } from './tracker.entity';
 
 export enum TypeDevice {
   PERFIL_DE_FACEBOOK = 'Perfil de facebook',
@@ -55,4 +57,7 @@ export class Devices {
   @ManyToOne(() => Users, (user) => user.devices)
   @JoinColumn({ name: 'created_by_user' })
   user: Users;
+
+  @OneToMany(() => Trackers, (tracker) => tracker.device)
+  trackers: Trackers[];
 }
