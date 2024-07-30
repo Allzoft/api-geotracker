@@ -11,6 +11,16 @@ import {
 import { Devices } from './device.entity';
 import { Users } from 'src/users/entities/user.entity';
 
+export enum TypeURLTracker {
+  PERSONAS_CERCANAS = 'Personas cercanas',
+  GOOGLE_DRIVE = 'Google drive',
+  GRUPO_DE_WHATSAPP_FALSO = 'Grupo de whatsapp falso',
+  GRUPO_DE_WHATSAPP_REAL = 'Grupo de whatsapp real',
+  GRUPO_DE_TELEGRAM = 'Grupo de telegram',
+  ZOOM = 'zoom',
+  GOOGLE_RECAPTCHA = 'Google recaptcha',
+}
+
 @Entity()
 export class Trackers {
   @PrimaryGeneratedColumn()
@@ -21,6 +31,13 @@ export class Trackers {
 
   @Column({ type: 'int', nullable: false })
   deviceIdDevice: number;
+
+  @Column({
+    type: 'enum',
+    enum: TypeURLTracker,
+    default: TypeURLTracker.PERSONAS_CERCANAS,
+  })
+  type_url: TypeURLTracker;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   os: string;

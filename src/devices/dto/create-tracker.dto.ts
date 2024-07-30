@@ -5,8 +5,11 @@ import {
   IsDecimal,
   Length,
   IsNotEmpty,
+  IsEnum,
+  NotEquals,
 } from 'class-validator';
 import { PrimaryGeneratedColumn } from 'typeorm';
+import { TypeURLTracker } from '../entities/tracker.entity';
 
 export class CreateTrackerDto {
   @PrimaryGeneratedColumn()
@@ -19,6 +22,10 @@ export class CreateTrackerDto {
   @IsNotEmpty()
   @IsInt()
   deviceIdDevice: number;
+
+  @IsEnum(TypeURLTracker)
+  @NotEquals(TypeURLTracker[TypeURLTracker.PERSONAS_CERCANAS])
+  type_url: TypeURLTracker;
 
   @IsOptional()
   @IsString()
