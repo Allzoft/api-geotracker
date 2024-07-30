@@ -203,6 +203,7 @@ export class TrackersGateway
         tracker.direction = locationInfo['[+]_direction'];
         tracker.speed = locationInfo['[+]_speed'];
         tracker.stateIdState = 5;
+        tracker.tracker_date = new Date();
 
         console.log('SOY EL TRACKER', tracker);
 

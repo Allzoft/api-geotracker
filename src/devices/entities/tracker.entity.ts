@@ -75,6 +75,9 @@ export class Trackers {
   @Column({ type: 'int', nullable: false })
   created_by_user: number;
 
+  @Column({ type: 'timestamp', nullable: true })
+  tracker_date: Date;
+
   @Column({ type: 'varchar', length: 255, nullable: true })
   region: string;
 
