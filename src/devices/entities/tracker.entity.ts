@@ -87,14 +87,14 @@ export class Trackers {
   @Column({ type: 'varchar', length: 255, nullable: true })
   isp: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
-  latitude: number;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  latitude: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
-  longitude: number;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  longitude: string;
 
-  @Column({ type: 'decimal', precision: 15, scale: 10, nullable: true })
-  accuracy: number;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  accuracy: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   altitude: string;

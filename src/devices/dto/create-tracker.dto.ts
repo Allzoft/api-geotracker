@@ -2,7 +2,6 @@ import {
   IsInt,
   IsOptional,
   IsString,
-  IsDecimal,
   Length,
   IsNotEmpty,
   IsEnum,
@@ -101,16 +100,16 @@ export class CreateTrackerDto {
   isp?: string;
 
   @IsOptional()
-  @IsDecimal({ decimal_digits: '7', force_decimal: true })
-  latitude?: number;
+  @IsString()
+  latitude?: string;
 
   @IsOptional()
-  @IsDecimal({ decimal_digits: '7', force_decimal: true })
-  longitude?: number;
+  @IsString()
+  longitude?: string;
 
   @IsOptional()
-  @IsDecimal({ decimal_digits: '10', force_decimal: true })
-  accuracy?: number;
+  @IsString()
+  accuracy?: string;
 
   @IsOptional()
   @IsString()

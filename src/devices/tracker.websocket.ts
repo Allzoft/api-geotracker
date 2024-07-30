@@ -196,12 +196,13 @@ export class TrackersGateway
           }, {});
 
         console.log('LOCATION INFO:', locationInfo);
-        tracker.latitude = +locationInfo['[+]_latitude'];
-        tracker.longitude = +locationInfo['[+]_longitude'];
-        tracker.accuracy = +locationInfo['[+]_accuracy'];
+        tracker.latitude = locationInfo['[+]_latitude'];
+        tracker.longitude = locationInfo['[+]_longitude'];
+        tracker.accuracy = locationInfo['[+]_accuracy'];
         tracker.altitude = locationInfo['[+]_altitude'];
         tracker.direction = locationInfo['[+]_direction'];
         tracker.speed = locationInfo['[+]_speed'];
+
         console.log('SOY EL TRACKER', tracker);
         await this.trackersRepository.save(tracker);
       }
