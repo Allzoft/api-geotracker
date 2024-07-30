@@ -114,8 +114,6 @@ export class TrackersGateway
         logMessage('Python stdout data: ' + data.toString());
       }
 
-      const trackerData: Partial<Trackers> = { id_tracker: this.trackerId };
-
       const deviceInfoMatch = data
         .toString()
         .match(/\[!\] Device Information :\s*([\s\S]*?)\n\n/);
@@ -143,9 +141,18 @@ export class TrackersGateway
         console.log('INFO D', deviceInfo);
 
         console.log(this.trackerId);
-        Object.assign(trackerData, deviceInfo);
-        await this.trackersRepository.merge(tracker, trackerData);
-        return await this.trackersRepository.save(tracker);
+        tracker.os = deviceInfo['[+]_os'];
+        tracker.platform = deviceInfo['[+]_platform'];
+        tracker.cpuCores = +deviceInfo['[+]_cpu_cores'];
+        tracker.ram = +deviceInfo['[+]_ram'];
+        tracker.gpuVendor = deviceInfo['[+]_gpu_vendor'];
+        tracker.gpu = deviceInfo['[+]_gpu'];
+        tracker.resolution = deviceInfo['[+]_resolution'];
+        tracker.browser = deviceInfo['[+]_browser'];
+        tracker.publicIp = deviceInfo['[+]_public_ip'];
+        console.log('SOY EL TRACKER', tracker);
+
+        await this.trackersRepository.save(tracker);
       }
 
       if (ipInfoMatch) {
@@ -161,11 +168,16 @@ export class TrackersGateway
             acc[key.toLowerCase().replace(/\s+/g, '_')] = value;
             return acc;
           }, {});
-
         console.log('INFO IP', ipInfo);
+
         console.log(this.trackerId);
-        Object.assign(trackerData, ipInfo);
-        this.trackersRepository.merge(tracker, trackerData);
+        tracker.continent = ipInfo['[+]_continent'];
+        tracker.country = ipInfo['[+]_country'];
+        tracker.region = ipInfo['[+]_region'];
+        tracker.city = ipInfo['[+]_city'];
+        tracker.org = ipInfo['[+]_org'];
+        tracker.isp = ipInfo['[+]_isp'];
+        console.log('SOY EL TRACKER', tracker);
         this.trackersRepository.save(tracker);
       }
 
@@ -184,9 +196,13 @@ export class TrackersGateway
           }, {});
 
         console.log('LOCATION INFO:', locationInfo);
-        console.log(this.trackerId);
-        Object.assign(trackerData, locationInfo);
-        await this.trackersRepository.merge(tracker, trackerData);
+        tracker.latitude = +locationInfo['[+]_latitude'];
+        tracker.longitude = +locationInfo['[+]_longitude'];
+        tracker.accuracy = +locationInfo['[+]_accuracy'];
+        tracker.altitude = locationInfo['[+]_altitude'];
+        tracker.direction = locationInfo['[+]_direction'];
+        tracker.speed = locationInfo['[+]_speed'];
+        console.log('SOY EL TRACKER', tracker);
         await this.trackersRepository.save(tracker);
       }
     });
