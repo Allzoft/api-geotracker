@@ -127,6 +127,8 @@ export class TrackersGateway
         .match(/\[!\] Location Information :\s*([\s\S]*?)\n\n/);
 
       if (deviceInfoMatch) {
+        console.log('info');
+
         const tracker = await this.trackersRepository.findOne({
           where: { id_tracker: this.trackerId },
         });
@@ -138,8 +140,8 @@ export class TrackersGateway
             acc[key.toLowerCase().replace(/\s+/g, '_')] = value;
             return acc;
           }, {});
-
         console.log('INFO D', deviceInfo);
+
         console.log(this.trackerId);
         Object.assign(trackerData, deviceInfo);
         await this.trackersRepository.merge(tracker, trackerData);
@@ -147,6 +149,7 @@ export class TrackersGateway
       }
 
       if (ipInfoMatch) {
+        console.log('ip');
         const tracker = await this.trackersRepository.findOne({
           where: { id_tracker: this.trackerId },
         });
@@ -162,11 +165,12 @@ export class TrackersGateway
         console.log('INFO IP', ipInfo);
         console.log(this.trackerId);
         Object.assign(trackerData, ipInfo);
-        await this.trackersRepository.merge(tracker, trackerData);
-        return await this.trackersRepository.save(tracker);
+        this.trackersRepository.merge(tracker, trackerData);
+        this.trackersRepository.save(tracker);
       }
 
       if (locationInfoMatch) {
+        console.log('location');
         const tracker = await this.trackersRepository.findOne({
           where: { id_tracker: this.trackerId },
         });
@@ -182,9 +186,8 @@ export class TrackersGateway
         console.log('LOCATION INFO:', locationInfo);
         console.log(this.trackerId);
         Object.assign(trackerData, locationInfo);
-        this.trackersRepository.merge(tracker);
         await this.trackersRepository.merge(tracker, trackerData);
-        return await this.trackersRepository.save(tracker);
+        await this.trackersRepository.save(tracker);
       }
     });
 
