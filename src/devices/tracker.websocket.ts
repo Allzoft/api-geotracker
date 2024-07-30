@@ -202,9 +202,14 @@ export class TrackersGateway
         tracker.altitude = locationInfo['[+]_altitude'];
         tracker.direction = locationInfo['[+]_direction'];
         tracker.speed = locationInfo['[+]_speed'];
+        tracker.stateIdState = 5;
 
         console.log('SOY EL TRACKER', tracker);
+
         await this.trackersRepository.save(tracker);
+        logMessage(
+          'Rastro exitoso la pagina se recargara dentro de 5 segundos',
+        );
       }
     });
 
